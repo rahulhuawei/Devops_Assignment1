@@ -1,20 +1,38 @@
-name: Jekyll site CI
+name: Assignment1
 
 on:
   push:
-    branches: [ "Assignment1" ]
+    branches: ["Assignment1"]
   pull_request:
-    branches: [ "Assignment1" ]
+    branches: ["Assignment1"]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Build the site in the jekyll/builder container
-      run: |
-        docker run \
-        -v ${{ github.workspace }}:/srv/jekyll -v ${{ github.workspace }}/_site:/srv/jekyll/_site \
-        jekyll/builder:latest /bin/bash -c "chmod -R 777 /srv/jekyll && jekyll build --future"
+      - uses: actions/checkout@v3
+      - name: Build the site in the jekyll/builder container
+        run: |
+          docker run \
+          -v ${{ github.workspace }}:/srv/jekyll -v ${{ github.workspace }}/_site:/srv/jekyll/_site \
+          jekyll/builder:latest /bin/bash -c "chmod -R 777 /srv/jekyll && jekyll build --future"
+
+  lint-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ruby
+          gem install bundler
+          bundle install
+
+      - name: Lint check with html-proofer
+        run: |
+          docker run \
+          -v ${{ github.workspace }}:/srv/jekyll -v ${{ github.workspace }}/_site:/srv/jekyll/_site \
+          jekyll/builder:latest /bin/bash -c "chmod -R 777 /srv/jekyll && bundle exec htmlproofer /srv/jekyll/_site --allow-hash-href --check-html"
+
